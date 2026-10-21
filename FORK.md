@@ -16,7 +16,10 @@ The version is chosen by `.github/scripts/next-version.mjs`.
 
 ## Sharing status
 
-- Shared with the original project: nothing yet.
-- Pending: nothing. This copy matches the original project's code.
-- Church-specific only: the release workflow (`.github/workflows/release.yaml`)
-  and this file.
+- Shared with the original project: the Wake command, the "Apple TV is on"
+  feedback and presets, proposed on October 21, 2026 from branch
+  `claude/wake-power-presets`. Waiting on the maintainer's review.
+- Pending: nothing else. Apart from that proposal and the items below, this
+  copy matches the original project's code.
+- Church-specific only: the release workflow (`.github/workflows/release.yaml`,
+  `.github/scripts/next-version.mjs`) and this file.
