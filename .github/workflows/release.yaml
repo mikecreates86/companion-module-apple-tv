@@ -1,0 +1,76 @@
+name: Release
+
+# Publishes the Companion import file (.tgz) to the Releases page after
+# Validation passes on main, or when run by hand from the Actions tab.
+on:
+  workflow_run:
+    workflows: [Validation]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build and publish package
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.x
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Install locked dependencies
+        run: yarn install --immutable
+      - name: Choose a version higher than every published release
+        id: version
+        run: echo "version=$(node .github/scripts/next-version.mjs)" >> "$GITHUB_OUTPUT"
+      - name: Build Companion package
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          npm pkg set version="$VERSION"
+          yarn package
+          yarn test:package
+      - name: Confirm the package carries the release version
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          test -f "apple-tv-$VERSION.tgz"
+          tar -xzOf "apple-tv-$VERSION.tgz" apple-tv/companion/manifest.json \
+            | node -e 'const m = JSON.parse(require("fs").readFileSync(0, "utf8")); if (m.version !== process.env.VERSION) { console.error(`manifest says ${m.version}`); process.exit(1) }'
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+          SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+        run: |
+          previous=$(git tag --list 'v*' --sort=-v:refname | head -n 1)
+          {
+            echo "Download **apple-tv-$VERSION.tgz** below and import it in Companion under Modules > Import module package."
+            echo
+            echo "Changes:"
+            if [ -n "$previous" ]; then
+              git log --no-merges --format='- %s' "$previous..$SHA"
+            else
+              git log --no-merges --format='- %s' -n 15 "$SHA"
+            fi
+          } > notes.md
+          gh release create "v$VERSION" "apple-tv-$VERSION.tgz" \
+            --target "$SHA" \
+            --title "Apple TV module $VERSION" \
+            --notes-file notes.md \
+            --latest
