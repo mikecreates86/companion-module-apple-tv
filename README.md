@@ -158,9 +158,13 @@ used because it did not reliably select AirPods.
 Use Node 22 and Yarn 4. Python is used only for the independent protocol oracle
 and retained reference-worker tests, not by the packaged module.
 
-The shared `Companion Apple TV` JetBrains inspection profile is selected by the
-inspection gate. It leaves arrow-parameter parentheses to Prettier and disables
-unused-global-symbol findings only under `tests/`, where duck-typed fakes expose
+Root inspection lanes route TypeScript, JavaScript and JSON to native WebStorm
+and Python/YAML to native PyCharm. Inspect each product separately. WebStorm
+prepares the committed Yarn lockfile in its private snapshot; PyCharm keeps the
+structured Python preparation. ESLint is covered by `yarn lint`. The shared
+`Companion Apple TV` JetBrains inspection profile is selected by both lanes.
+It leaves arrow-parameter parentheses to Prettier and disables unused-global-symbol
+findings only under `tests/`, where duck-typed fakes expose
 members indirectly. Other IDE state remains local and ignored.
 
 The minimum Companion version and the module API range it accepts are recorded
@@ -168,19 +172,15 @@ under `companion` in `package.json`. `yarn package` fails when the bundled
 `@companion-module/base` version falls outside that range. Raise both values and
 the Requirements section together when moving to a newer base line.
 
-```sh
-yarn install --immutable
-yarn build
-yarn test
-yarn lint
-yarn package
-yarn test:package
-uv sync --locked
-uv run python -m unittest discover -s tests -p 'test_*.py' -v
-uv run --python 3.13 --locked python experiments/node-library/loopback-peer.py
-uv run --python 3.13 --locked python experiments/node-library/loopback-peer.py --package pkg/apple-tv/main.js
-uv run --python 3.13 --locked python experiments/node-library/mrp_fixtures.py | node experiments/node-library/metadata-oracle.mjs
-```
+Local checks select affected test files with `qualityGate.test.local` in
+[workflow metadata](.github/github.json), after the build/type check.
+[AGENTS.md](AGENTS.md#github-workflow) describes focused Python reference-worker
+selection and covering-module tracing.
+
+`qualityGate.test.ci` composes the existing canonical build, lint, Node/Python,
+independent protocol/metadata and package commands in that metadata. Install the
+locked Node and Python dependencies first using its setup commands. CI's
+`validation-gate` retains the separate macOS and Windows packaged-runtime checks.
 
 CI checks the bundle on Linux, macOS and Windows. Synthetic tests cover setup,
 secret persistence, restart, cancellation, migration, encryption, metadata,
@@ -192,9 +192,9 @@ so far covers one Apple TV; this does not establish compatibility with every tvO
 version, app, audio route or operating-system installation.
 
 The [library patch and qualification notes](experiments/node-library/README.md)
-describe the reproducible extensions to `node-appletv-remote` 0.4.0 and the separate
-developer harness. Source and compiled patches are checked in together. No
-upstream acceptance or distribution approval is implied by the candidate.
+describe the small patch to `node-appletv-remote` 0.5.0 and the separate developer
+harness. No upstream acceptance or distribution approval is implied by the
+candidate.
 
 ## Provenance
 

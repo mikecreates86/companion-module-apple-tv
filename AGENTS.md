@@ -1,14 +1,23 @@
 # Apple TV Companion Module Agent Notes
 
+## What Companion's Apple TV module does
+
+This module lets Bitfocus Companion discover, pair with, and control Apple TV devices on the local network.
+It provides remote buttons, app launching, and Now Playing variables, running in Companion's Node runtime.
+Evidence: [README.md](README.md); the Hardware Safety rules below apply to all real-device work.
+
 ## GitHub Workflow
 
-- Treat `main` as a protected no-direct-work branch. Create a focused task
-  branch, push it, and open a pull request.
-- Pull requests land through the Launchplane merge train with the
-  `ready-to-merge` label. Do not merge them directly.
+- Follow the shared [GitHub workflow](https://github.com/cbusillo/codex-skills/blob/main/skills/github/SKILL.md).
 - Use normal merge commits. Do not squash or rebase pull requests.
-- Run the gates in `.github/github.json` before review. The `Validation`
-  workflow and the Companion module checks must pass on the current PR head.
+- Use the focused `qualityGate.test.local` command in `.github/github.json`,
+  replacing `{test_paths}` with affected Node test files after the build/type
+  check. For Python reference-worker changes, select a module filename with
+  `uv run python -m unittest discover -s tests -p '{test_pattern}' -v`.
+- For safety changes, including pairing and credential handling, run complete
+  modules covering changed code and callers, including the synthetic protocol
+  and packaged-peer harnesses where affected. Record missing coverage.
+- Do not label or operate the train yourself.
 
 ## Hardware Safety
 
@@ -18,6 +27,8 @@
   result. Pairing happens only after an explicit request.
 - Never commit pairing keys, credentials, device identifiers, addresses, or raw
   captures. Use invented values.
+- A fork's package identity must be unique before it is installed on the
+  device. Static review of a fork is a separate step from executing its code.
 
 ## Engineering Defaults
 
