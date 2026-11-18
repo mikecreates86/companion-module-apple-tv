@@ -17,9 +17,9 @@ The version is chosen by `.github/scripts/next-version.mjs`.
 ## Sharing status
 
 - Shared with the original project: the Wake command, the "Apple TV is on"
-  feedback and presets, proposed on October 21, 2026 from branch
-  `claude/wake-power-presets`. Waiting on the maintainer's review.
-- Pending: nothing else. Apart from that proposal and the items below, this
-  copy matches the original project's code.
+  feedback and presets. Accepted into the original project on October 24, 2026,
+  which has since reworked the presets and added more wake testing.
+- Pending: nothing. This copy has not yet pulled in the original project's
+  changes since October 21, 2026.
 - Church-specific only: the release workflow (`.github/workflows/release.yaml`,
   `.github/scripts/next-version.mjs`) and this file.
